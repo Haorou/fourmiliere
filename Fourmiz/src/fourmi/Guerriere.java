@@ -8,14 +8,15 @@ public class Guerriere extends Fourmi
 		super(Metier.GUERRIERE);
 	}
 	
-	public void PetitGuerrier()
+
+	public void petitGuerrier()
 	{
 		System.out.println("Je ne suis pas bien grand");
 	}
 	
 	public void superGuerrier()
 	{
-		System.out.println("Je ne suis pas bien grand");
+		System.out.println("KAMEHAMEHA!!");
 	}
 
 	@Override
