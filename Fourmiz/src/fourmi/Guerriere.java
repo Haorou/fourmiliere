@@ -7,6 +7,16 @@ public class Guerriere extends Fourmi
 	{
 		super(Metier.GUERRIERE);
 	}
+	
+	public void PetitGuerrier()
+	{
+		System.out.println("Je ne suis pas bien grand");
+	}
+	
+	public void superGuerrier()
+	{
+		System.out.println("Je ne suis pas bien grand");
+	}
 
 	@Override
 	public float getProduction() { return alea(this.getMetier().valeurProduction,0.3f);}
