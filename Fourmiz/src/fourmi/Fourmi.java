@@ -3,9 +3,11 @@ package fourmi;
 
 public abstract class Fourmi 
 {
+
 	private Metier metier;
 	private int age;
 	private int besoinEnNourriture;
+	private int besoin_en_nourriture = 1;
 	
 	public Fourmi(Metier metier)
 	{

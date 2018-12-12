@@ -2,9 +2,7 @@ package fourmi;
 
 
 public class Guerriere extends Fourmi 
-{
-	private static final int BESSOIN_NOURRITURE = 1;
-	
+{	
 	public Guerriere(Metier metier)
 	{
 		super(Metier.GUERRIERE);
