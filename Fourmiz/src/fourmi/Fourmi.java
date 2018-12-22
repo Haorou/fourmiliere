@@ -1,13 +1,12 @@
 package fourmi;
 
 
-public abstract class Fourmi 
+public abstract class Fourmi implements IInsecte
 {
 
 	private Metier metier;
 	private int age;
-	private int besoinEnNourriture;
-	private int besoin_en_nourriture = 1;
+	private int besoinEnNourriture = 1;
 	
 	public Fourmi(Metier metier)
 	{
@@ -15,7 +14,7 @@ public abstract class Fourmi
 		this.metier = metier;
 	}
 	
-	public Fourmi(int besoinEnNourriture, Metier metier)
+	public Fourmi(Metier metier, int besoinEnNourriture)
 	{
 		age = 0;
 		this.besoinEnNourriture = besoinEnNourriture;
@@ -27,7 +26,7 @@ public abstract class Fourmi
 	public void setAge(int age) { this.age = age; }
 	public int getAge() { return this.age;} 
 	public Metier getMetier() { return this.metier;} 
-	public void setMetier(Metier metier) { this.metier = metier;} 
+	public void setMetier(Metier metier) { this.metier = metier; }
 	public int getBesoinEnNourriture() { return this.besoinEnNourriture;}
 	public void setBesoinEnNourriture(int besoinEnNourriture) { this.besoinEnNourriture = besoinEnNourriture;}
 

@@ -1,12 +1,16 @@
 package fourmiliere;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import fourmi.Fourmi;
 import fourmi.Guerriere;
+import fourmi.IInsecte;
 import fourmi.LotOeufs;
+import fourmi.Metier;
 import fourmi.Ouvriere;
 import fourmi.Reine;
 
@@ -25,25 +29,36 @@ public class Fourmiliere
 	private int nourritures_courantes = 500;
 
 	private Reine reine;
-	private List<Fourmi> l_fourmis = new ArrayList<Fourmi>();
+	private List<IInsecte> l_fourmis = new ArrayList<IInsecte>();
 	private int nombre_de_larves_age_0 = 0;
 	private int nombre_de_larves_age_1 = 0;
+	
+	private int nbrGuerrier = 0;
+	private int nbrOuvrier_NURSE = 0;
+	private int nbrOuvrier_NETTOYEUSE = 0;
+	private int nbrOuvrier_CHASSEUSE = 0;
+	private int nbrOuvrier_INGENIEUSE = 0;
 
 	
 	public Fourmiliere()
 	{
 		// INITIALISATION DE LA FOURMILIERE //
-		reine = new Reine(100000);
+		reine = new Reine();
 		Ouvriere fourmi_ouvriere;
 		for (int i = 0; i < 200; i++) 
 		{
-			fourmi_ouvriere = new Ouvriere();
-			if(i > 100)
-				fourmi_ouvriere.setAge(11);				
-			else if(i < 50)
-				fourmi_ouvriere.setAge(7);
+			if(i > 100) 
+			{
+				fourmi_ouvriere = new Ouvriere(Metier.CHASSEUSE);
+				fourmi_ouvriere.setAge(10);				
+			}
+			else if(i > 50)
+			{
+				fourmi_ouvriere = new Ouvriere(Metier.NETTOYEUSE);
+				fourmi_ouvriere.setAge(3);
+			}
 			else
-				fourmi_ouvriere.setAge(1);
+				fourmi_ouvriere = new Ouvriere(Metier.NURSE);
 
 			l_fourmis.add(fourmi_ouvriere);
 		}
@@ -72,6 +87,9 @@ public class Fourmiliere
 		
 		gestionAge();
 		statistiques("gestionAge");
+		
+		gestionEvolutionFourmi();
+		statistiques("gestionEvolutionFourmi");
 	}
 	
 	private void gestionPondaisonEtNaissanceLarve()
@@ -100,7 +118,11 @@ public class Fourmiliere
 		if(nbrDeLarvesEnTrop > 0)
 		{
 			nombre_de_larves_age_0 -= nbrDeLarvesEnTrop;
-			nourritures_courantes += alea(nbrDeLarvesEnTrop,0.25f);
+			nourritures_courantes += alea(nbrDeLarvesEnTrop,0.05f);
+			if(nourritures_courantes > capacite_max_nourriture)
+			{
+				nourritures_courantes = capacite_max_nourriture;
+			}
 		}
 
 		
@@ -116,20 +138,25 @@ public class Fourmiliere
 	}
 	
 	private void gestionLarveEtRepartitionOuvrirGuerriere()
-	{
+	{		
 		// LES LARVES EN AGE DE TRANSFORMATION DEVIENNENT GUERRIERE OU OUVRIERE//
+		int nombreDeGuerrieresNecessaire = nombre_de_menaces + menaces_incrementables;
+		
+		
 		for (int index = 0; index < nombre_de_larves_age_1; index++) 
 		{
-			if(index%2==0)
-				l_fourmis.add(new Ouvriere());
-
+			if(nbrGuerrier <= nombreDeGuerrieresNecessaire)
+			{
+				l_fourmis.add(new Guerriere());
+				nbrGuerrier++;
+			}
 			else
-				l_fourmis.add(new Guerriere());				
+				l_fourmis.add(new Ouvriere(Metier.NURSE));				
 		}
 		nombre_de_larves_age_1 = 0;
 
 		// ON RANGE LES FOURMIS PAR AGE - PLUS JEUNE A PLUS AGEE //
-		Comparator<Fourmi> byAge = Comparator.comparing(Fourmi::getAge);
+		Comparator<? super IInsecte> byAge = Comparator.comparing(IInsecte::getAge);
 		l_fourmis.sort(byAge);
 		
 		// SI IL Y A PLUS DE FOURMI QUE DE CAPACITE DE POPULATION ON SE DEBARASSE DES JEUNES EN TROP //
@@ -142,73 +169,37 @@ public class Fourmiliere
 	
 	private void gestionOuvriereProductionNettoyage()
 	{
-		Fourmi fourmiCourante;
-		Ouvriere ouvriereCourante;
-		int ageOuvriereCourante;
+		int nbrDeLarvesGereables = 0;
+		float capaciteDeNettoyage = 0;
+		float puissanceDeChasse = 0;
+		float puissanceIngenieur = 0;
 		
-		// REPARTITION DES OUVRIERES EN FONCTION DE L'AGE //
-		List<Fourmi> l_ouvrieres_age2max = new ArrayList<Fourmi>();
-		List<Fourmi> l_ouvrieres_age2a10 = new ArrayList<Fourmi>();
-		List<Fourmi> l_ouvrieres_11etPlus = new ArrayList<Fourmi>();
-		
-		for (int index = 0; index < l_fourmis.size(); index++) 
+		for (IInsecte fourmi : l_fourmis)
 		{
-			fourmiCourante = l_fourmis.get(index);
-			
-			if(fourmiCourante.estOuvriere)
-			{
-				ouvriereCourante = (Ouvriere) fourmiCourante;
-				ageOuvriereCourante = ouvriereCourante.getAge();
-				
-				if(ageOuvriereCourante <= 2)
-					l_ouvrieres_age2max.add(ouvriereCourante);
-				else if(ageOuvriereCourante > 2 && ageOuvriereCourante <= 10)
-					l_ouvrieres_age2a10.add(ouvriereCourante);
-				else
-					l_ouvrieres_11etPlus.add(ouvriereCourante);
-			}
+			if(fourmi.getMetier() == Metier.NURSE)
+				nbrDeLarvesGereables += fourmi.getProduction();
 		}
-		
-		float capaciteDeNettoyageNecessaire = l_fourmis.size();
-		
-		
-		float nombreDeLarvesGereableSuffisante = 0;
-		
-		// ATTRIBUTION DES ROLES //
-		// OUVRIERE D'AGE 2 OU MOINS : GESTION DES LARVES //
-		float repartitionGererLarve = 0;
-		float reparttionGererAgrandissement = 0;
-		
-		int nbrDeLarvesGereables = (int)(l_ouvrieres_age2max.size() *0.9f) * 10;
-		
+		// GESTION LARVES //
 		if(nombre_de_larves_age_0 > nbrDeLarvesGereables)
 			nombre_de_larves_age_0 = nbrDeLarvesGereables;
 		
-		// OUVRIERE D'AGE 2 A 10 : NETTOYAGE //
-		
-		float capaciteDeNettoyage = 0;
-
-		for (Fourmi fourmi : l_ouvrieres_age2max) 
-			capaciteDeNettoyage += ((Ouvriere) fourmi).getPuissanceNettoyage();
-
-		// OUVRIERE D'AGE 11 ET PLUS : SEPARATION DES RÔLES ENTRE NETTOYAGE ET CHASSE //
-		float puissanceDeChasse = 0;
-		
-		for(int index = 0 ; index < l_ouvrieres_age2a10.size() ; index++)
+		for (IInsecte fourmi : l_fourmis)
 		{
-			if(index%2 == 0)
-				capaciteDeNettoyage += ((Ouvriere)l_ouvrieres_age2a10.get(index)).getPuissanceNettoyage();
-
-			else
-				puissanceDeChasse += ((Ouvriere)l_ouvrieres_age2a10.get(index)).getPuissanceChasse();
+			if(fourmi.getMetier() == Metier.CHASSEUSE)
+				puissanceDeChasse += fourmi.getProduction();
 		}
-
 
 		// GESTION DE LA NOURRITURE AVEC OUVRIERE POUR LA CHASSE //
 		nourritures_courantes += puissanceDeChasse;
 		
 		if(nourritures_courantes > capacite_max_nourriture)
 			nourritures_courantes = capacite_max_nourriture;
+		
+		for (IInsecte fourmi : l_fourmis)
+		{
+			if(fourmi.getMetier() == Metier.NETTOYEUSE)
+				capaciteDeNettoyage += fourmi.getProduction();
+		}
 		
 		// NETTOYAGE EFFECTIF - SI PAS ASSEZ DE CAPACITE NETTOYAGE ON SE DEBARASSE DES JEUNES EN TROP //
 		if(capaciteDeNettoyage < l_fourmis.size())
@@ -217,12 +208,15 @@ public class Fourmiliere
 				l_fourmis.remove(0);
 		}
 
-		// ON COMPTE LE NOMBRE D'OUVRIERE ET ON AJOUTE AUTANT DE CAPACITE x 100 A CHAQUE LIMITATION //
-
-		int ajoutDeCapacite = 100 * (int)(l_ouvrieres_age2max.size() *0.1f);;
-		capacite_max_nourriture += ajoutDeCapacite;
-		capacite_max_larves += ajoutDeCapacite;
-		capacite_max_population += ajoutDeCapacite;
+		for (IInsecte fourmi : l_fourmis)
+		{
+			if(fourmi.getMetier() == Metier.INGENIEUR)
+				puissanceIngenieur += fourmi.getProduction();
+		}
+		
+		capacite_max_nourriture += puissanceIngenieur;
+		capacite_max_larves += puissanceIngenieur;
+		capacite_max_population += puissanceIngenieur;
 	}
 	
 	public void gestionMenace()
@@ -236,11 +230,11 @@ public class Fourmiliere
 		// ON COMPTE LA FORCE DES GUERRIERES ET LE NOMBRE DES GUERRIERES //
 		float forceGuerriere = 0;
 		int nbrGuerrieres = 0;
-		for (Fourmi fourmi : l_fourmis) 
+		for (IInsecte fourmi : l_fourmis) 
 		{
-			if(fourmi.estGuerriere)
+			if(fourmi.getMetier() == Metier.GUERRIERE)
 			{
-				forceGuerriere += ((Guerriere) fourmi).getForce();
+				forceGuerriere += fourmi.getProduction();
 				nbrGuerrieres++;
 			}
 		}
@@ -250,8 +244,10 @@ public class Fourmiliere
 		 * SINON ON COMPTE LES GUERRIERE ATTAQUANTS ET ON LEUR PERMET D'OBTENIR DE LA NOURRITURE POUR CHAQUE ATTAQUANTES */
 		if(forceGuerriere <= (nombre_de_menaces + menaces_incrementables))
 		{
+			Collections.shuffle(l_fourmis);
 			int nombre_de_morts = (nombre_de_menaces + menaces_incrementables) - nbrGuerrieres;
 			int compteur = 0;
+			
 			while(l_fourmis.size() != 0 && compteur != nombre_de_morts)
 			{
 				l_fourmis.remove(0);
@@ -263,11 +259,17 @@ public class Fourmiliere
 			int nbrDeGuerrieresAttaquantes = nombre_de_menaces + menaces_incrementables;
 			
 			for(int i = 0; i < nbrDeGuerrieresAttaquantes; i++)
-				nourritures_courantes += Math.abs(alea(1,3));
+				nourritures_courantes += Math.abs(alea(1,3f));
 		}
 		
 		if(l_fourmis.size() == 0)
+		{
+			System.out.println("====================================================================================================\n"
+							 + "================================> Il n'y a plus de fourmis en vie, le menace était trop importante, la fourmillière est morte "
+						   + "\n=====================================================================================================");
 			estMorte = true;
+		}
+
 	}
 	
 	public void gestionAlimentation()
@@ -275,7 +277,12 @@ public class Fourmiliere
 		nourritures_courantes -= reine.getBesoinEnNourriture();
 		
 		if(nourritures_courantes < 0)
-			estMorte = true;
+		{
+			System.out.println("====================================================================================================\n"
+							 + "================================> Il n'y a pas assez de nourriture, les fourmis sont mortent de faim "
+						   + "\n=====================================================================================================");
+			estMorte = true;	
+		}
 		else
 		{
 			int indexFourmiNourrie = 0;
@@ -283,7 +290,7 @@ public class Fourmiliere
 			
 			while(nourritures_courantes > 0 && indexFourmiNourrie != nbrDeFourmis)
 			{
-				nourritures_courantes -= l_fourmis.get(indexFourmiNourrie).besoinEnNourriture;
+				nourritures_courantes -= l_fourmis.get(indexFourmiNourrie).getBesoinEnNourriture();
 				indexFourmiNourrie++;
 			}
 			
@@ -304,12 +311,13 @@ public class Fourmiliere
 	
 	public void gestionAugmentationMenace()
 	{
-		int nourritures_potentielles = (int) (nourritures_courantes * popularite);
+		int nourritures_potentielles = (int) (nourritures_courantes / 10 * popularite);
+		
 		if(nombre_de_menaces <= nourritures_potentielles)
 		{
 			popularite += 0.1f;
 			
-			while(nourritures_potentielles > nombre_de_menaces * 5)
+			while(nourritures_potentielles > nombre_de_menaces)
 				nombre_de_menaces++;		
 		}
 		else
@@ -336,7 +344,7 @@ public class Fourmiliere
 	public void gestionAge()
 	{
 		reine.vieillir();
-		for (Fourmi fourmi : l_fourmis) 
+		for (IInsecte fourmi : l_fourmis) 
 			fourmi.vieillir();
 	}
 
@@ -354,20 +362,62 @@ public class Fourmiliere
 		return valeur_a_modifier;
 	}
 	
-	public void statistiques(String evenement)
+	public void gestionEvolutionFourmi()
 	{
-		int nbrGuerrier = 0;
-		int nbrOuvrier = 0;
-		for (Fourmi fourmi : l_fourmis) 
+		// ON LANCE L'EVOLUTION DES FOURMIS NETTOYEUSES SI NECESSAIRE //
+		int nombreDeFourmisNettoyeusesNeededAuTotal = l_fourmis.size() / 20;
+		int nombreDeFourmisNettoyeusesNeededEnPlus = nombreDeFourmisNettoyeusesNeededAuTotal - nbrOuvrier_NETTOYEUSE;
+		
+		int compteurFourmisNettoyeusesNeeded = 0;
+		for (IInsecte iInsecte : l_fourmis) 
 		{
-			if(fourmi.estOuvriere)
-				nbrOuvrier++;
-			
-			else if(fourmi.estGuerriere)
+			if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 10)
+			{
+				iInsecte.setMetier(Metier.CHASSEUSE);
+			}
+			else
+			{
+				if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3 && compteurFourmisNettoyeusesNeeded < nombreDeFourmisNettoyeusesNeededEnPlus)
+				{
+					iInsecte.setMetier(Metier.NETTOYEUSE);
+					compteurFourmisNettoyeusesNeeded++;
+				} 
+				else if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3)
+				{
+					iInsecte.setMetier(Metier.INGENIEUR);
+				}				
+			}
+		}			
+	}
+	
+	public void statistiques(String evenement)
+	{	
+		nbrGuerrier = 0;
+		nbrOuvrier_CHASSEUSE = 0;
+		nbrOuvrier_NETTOYEUSE = 0;
+		nbrOuvrier_INGENIEUSE = 0;
+		nbrOuvrier_NURSE = 0;
+		
+		for (IInsecte fourmi : l_fourmis) 
+		{
+			if(fourmi.getMetier() == Metier.GUERRIERE)
 				nbrGuerrier++;
+			else if(fourmi.getMetier() == Metier.CHASSEUSE)
+				nbrOuvrier_CHASSEUSE++;
+			else if(fourmi.getMetier() == Metier.NETTOYEUSE)
+				nbrOuvrier_NETTOYEUSE++;
+			else if(fourmi.getMetier() == Metier.INGENIEUR)
+				nbrOuvrier_INGENIEUSE++;
+			else if(fourmi.getMetier() == Metier.NURSE)
+				nbrOuvrier_NURSE++;
 		}
 		System.out.println("Après ce moment : " + evenement + " \n"
-				+ "On dénombre : " + l_fourmis.size() +" fourmis dont " + nbrGuerrier + " guerriers et " + nbrOuvrier +" ouvriers \n"
+				+ "On dénombre : " + l_fourmis.size() +" fourmis dont : \n"
+						+ " " + nbrGuerrier + " Guerriers \n"
+						+ " " + nbrOuvrier_CHASSEUSE + " ouvriers chasseuses \n"
+						+ " " + nbrOuvrier_NETTOYEUSE + " ouvriers nettoyeuse \n"
+						+ " " + nbrOuvrier_INGENIEUSE + " ouvrier ingénieuses \n"
+						+ " " + nbrOuvrier_NURSE +  " ouvrier nurses \n"
 				+ nombre_de_larves_age_0 + " larves qui vient de naitre et "+ nombre_de_larves_age_1 +" qui sont prêt à devenir fourmi \n"
 				+ reine.nbrLotsOeufs() +" lots d'oeufs \n"
 				+ "Et " + nourritures_courantes +" unités de nouriture \n");

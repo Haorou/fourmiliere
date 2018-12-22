@@ -3,20 +3,9 @@ package fourmi;
 
 public class Guerriere extends Fourmi 
 {	
-	public Guerriere(Metier metier)
+	public Guerriere()
 	{
 		super(Metier.GUERRIERE);
-	}
-	
-
-	public void petitGuerrier()
-	{
-		System.out.println("Je ne suis pas bien grand");
-	}
-	
-	public void superGuerrier()
-	{
-		System.out.println("KAMEHAMEHA!!");
 	}
 
 	@Override
