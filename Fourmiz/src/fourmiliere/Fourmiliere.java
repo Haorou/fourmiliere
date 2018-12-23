@@ -155,9 +155,7 @@ public class Fourmiliere
 		}
 		nombre_de_larves_age_1 = 0;
 
-		// ON RANGE LES FOURMIS PAR AGE - PLUS JEUNE A PLUS AGEE //
-		Comparator<? super IInsecte> byAge = Comparator.comparing(IInsecte::getAge);
-		l_fourmis.sort(byAge);
+		rangerFourmiOrdreAge(true);
 		
 		// SI IL Y A PLUS DE FOURMI QUE DE CAPACITE DE POPULATION ON SE DEBARASSE DES JEUNES EN TROP //
 		if(l_fourmis.size() > capacite_max_population)
@@ -244,7 +242,7 @@ public class Fourmiliere
 		 * SINON ON COMPTE LES GUERRIERE ATTAQUANTS ET ON LEUR PERMET D'OBTENIR DE LA NOURRITURE POUR CHAQUE ATTAQUANTES */
 		if(forceGuerriere <= (nombre_de_menaces + menaces_incrementables))
 		{
-			Collections.shuffle(l_fourmis);
+			rangerFourmiOrdreAge(false);
 			int nombre_de_morts = (nombre_de_menaces + menaces_incrementables) - nbrGuerrieres;
 			int compteur = 0;
 			
@@ -275,7 +273,7 @@ public class Fourmiliere
 	public void gestionAlimentation()
 	{	
 		nourritures_courantes -= reine.getBesoinEnNourriture();
-		
+		rangerFourmiOrdreAge(true);
 		if(nourritures_courantes < 0)
 		{
 			System.out.println("====================================================================================================\n"
@@ -367,7 +365,7 @@ public class Fourmiliere
 		// ON LANCE L'EVOLUTION DES FOURMIS NETTOYEUSES SI NECESSAIRE //
 		int nombreDeFourmisNettoyeusesNeededAuTotal = l_fourmis.size() / 20;
 		int nombreDeFourmisNettoyeusesNeededEnPlus = nombreDeFourmisNettoyeusesNeededAuTotal - nbrOuvrier_NETTOYEUSE;
-		
+		System.out.println("================================>  Nombre de fourmis nettoyeuses needed = " + nombreDeFourmisNettoyeusesNeededEnPlus);
 		int compteurFourmisNettoyeusesNeeded = 0;
 		for (IInsecte iInsecte : l_fourmis) 
 		{
@@ -388,6 +386,18 @@ public class Fourmiliere
 				}				
 			}
 		}			
+	}
+	
+	public void rangerFourmiOrdreAge(boolean dansOrdre)
+	{
+		if(dansOrdre)
+		{
+			// ON RANGE LES FOURMIS PAR AGE - PLUS JEUNE A PLUS AGEE //
+			Comparator<? super IInsecte> byAge = Comparator.comparing(IInsecte::getAge);
+			l_fourmis.sort(byAge);			
+		}
+		else
+			Collections.shuffle(l_fourmis);
 	}
 	
 	public void statistiques(String evenement)
