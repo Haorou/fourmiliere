@@ -67,7 +67,7 @@ public class Fourmiliere
 	public void evoluer()
 	{
 		System.out.println("==============================================================================");
-		System.out.println("-------------------------------- TOURI " + dateCourante++ +" -------------------------------------- ");
+		System.out.println("-------------------------------- TOUR " + dateCourante++ +" -------------------------------------- ");
 		System.out.println("==============================================================================");
 		
 		gestionPondaisonEtNaissanceLarve();
@@ -366,8 +366,13 @@ public class Fourmiliere
 	public void gestionEvolutionFourmi()
 	{
 		// ON LANCE L'EVOLUTION DES FOURMIS NETTOYEUSES SI NECESSAIRE //
-		int nombreDeFourmisNettoyeusesNeededAuTotal = l_fourmis.size() / 20;
-		int nombreDeFourmisNettoyeusesNeededEnPlus = nombreDeFourmisNettoyeusesNeededAuTotal - nbrOuvrier_NETTOYEUSE;
+		int nombreDeFourmisNettoyeusesNeededTheorique = l_fourmis.size() / 20;
+		int nombreDeFourmisNettoyeusesNeeded;
+		
+		if(nbrOuvrier_NETTOYEUSE > nombreDeFourmisNettoyeusesNeededTheorique)
+			nombreDeFourmisNettoyeusesNeeded = nbrOuvrier_NETTOYEUSE - nombreDeFourmisNettoyeusesNeededTheorique;
+		else
+			nombreDeFourmisNettoyeusesNeeded = nombreDeFourmisNettoyeusesNeededTheorique - nbrOuvrier_NETTOYEUSE ;			
 		
 		int compteurFourmisNettoyeusesNeeded = 0;
 		for (IInsecte iInsecte : l_fourmis) 
@@ -379,7 +384,7 @@ public class Fourmiliere
 			}
 			else
 			{
-				if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3 && compteurFourmisNettoyeusesNeeded < nombreDeFourmisNettoyeusesNeededEnPlus)
+				if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3 && compteurFourmisNettoyeusesNeeded != nombreDeFourmisNettoyeusesNeeded)
 				{
 					iInsecte.setMetier(Metier.NETTOYEUSE);
 					compteurFourmisNettoyeusesNeeded++;
