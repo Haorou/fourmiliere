@@ -66,7 +66,10 @@ public class Fourmiliere
 	
 	public void evoluer()
 	{
-		dateCourante++;
+		System.out.println("==============================================================================");
+		System.out.println("-------------------------------- TOURI " + dateCourante++ +" -------------------------------------- ");
+		System.out.println("==============================================================================");
+		
 		gestionPondaisonEtNaissanceLarve();
 		statistiques("gestionPondaisonEtNaissanceLarve");	
 		
@@ -365,10 +368,11 @@ public class Fourmiliere
 		// ON LANCE L'EVOLUTION DES FOURMIS NETTOYEUSES SI NECESSAIRE //
 		int nombreDeFourmisNettoyeusesNeededAuTotal = l_fourmis.size() / 20;
 		int nombreDeFourmisNettoyeusesNeededEnPlus = nombreDeFourmisNettoyeusesNeededAuTotal - nbrOuvrier_NETTOYEUSE;
-		System.out.println("================================>  Nombre de fourmis nettoyeuses needed = " + nombreDeFourmisNettoyeusesNeededEnPlus);
+		
 		int compteurFourmisNettoyeusesNeeded = 0;
 		for (IInsecte iInsecte : l_fourmis) 
 		{
+
 			if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 10)
 			{
 				iInsecte.setMetier(Metier.CHASSEUSE);
