@@ -1,12 +1,10 @@
 package fourmiliere;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import fourmi.Fourmi;
 import fourmi.Guerriere;
 import fourmi.IInsecte;
 import fourmi.LotOeufs;
@@ -67,7 +65,7 @@ public class Fourmiliere
 	public void evoluer()
 	{
 		System.out.println("==============================================================================");
-		System.out.println("-------------------------------- TOUR " + dateCourante++ +" -------------------------------------- ");
+		System.out.println("-------------------------------- TOUR " + ++dateCourante +" -------------------------------------- ");
 		System.out.println("==============================================================================");
 		
 		gestionPondaisonEtNaissanceLarve();
@@ -366,13 +364,7 @@ public class Fourmiliere
 	public void gestionEvolutionFourmi()
 	{
 		// ON LANCE L'EVOLUTION DES FOURMIS NETTOYEUSES SI NECESSAIRE //
-		int nombreDeFourmisNettoyeusesNeededTheorique = l_fourmis.size() / 20;
-		int nombreDeFourmisNettoyeusesNeeded;
-		
-		if(nbrOuvrier_NETTOYEUSE > nombreDeFourmisNettoyeusesNeededTheorique)
-			nombreDeFourmisNettoyeusesNeeded = nbrOuvrier_NETTOYEUSE - nombreDeFourmisNettoyeusesNeededTheorique;
-		else
-			nombreDeFourmisNettoyeusesNeeded = nombreDeFourmisNettoyeusesNeededTheorique - nbrOuvrier_NETTOYEUSE ;			
+		int nombreDeFourmisNettoyeusesNeededTheorique = (l_fourmis.size() + nombre_de_larves_age_0) / 20 + 1;
 		
 		int compteurFourmisNettoyeusesNeeded = 0;
 		for (IInsecte iInsecte : l_fourmis) 
@@ -384,7 +376,7 @@ public class Fourmiliere
 			}
 			else
 			{
-				if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3 && compteurFourmisNettoyeusesNeeded != nombreDeFourmisNettoyeusesNeeded)
+				if(iInsecte.getMetier() != Metier.GUERRIERE && iInsecte.getAge() >= 3 && compteurFourmisNettoyeusesNeeded != nombreDeFourmisNettoyeusesNeededTheorique)
 				{
 					iInsecte.setMetier(Metier.NETTOYEUSE);
 					compteurFourmisNettoyeusesNeeded++;
@@ -401,8 +393,8 @@ public class Fourmiliere
 	{
 		if(dansOrdre)
 		{
-			// ON RANGE LES FOURMIS PAR AGE - PLUS JEUNE A PLUS AGEE //
-			Comparator<? super IInsecte> byAge = Comparator.comparing(IInsecte::getAge);
+			// ON RANGE LES FOURMIS PAR AGE - PUIS PAR METIER - PLUS JEUNE A PLUS AGEE //
+			Comparator<? super IInsecte> byAge = Comparator.comparing(IInsecte::getAge).thenComparing(IInsecte::getMetier).reversed();
 			l_fourmis.sort(byAge);			
 		}
 		else
